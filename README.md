@@ -67,7 +67,7 @@ Raiden Kernel is a performance-focused custom kernel based on Samsung's stock 4.
 
 | Device | Codename | Model |
 |--------|----------|-------|
-| Samsung Galaxy A90 5G | R3Q | SM-A908N |
+| Samsung Galaxy A90 5G | R3Q | SM-A908 |
 
 ---
 
