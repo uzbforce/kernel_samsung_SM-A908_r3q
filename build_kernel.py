@@ -6,13 +6,14 @@ import re
 import time
 from datetime import datetime
 import zipfile
+import multiprocessing
 
 debug_popen_impl = False
 
-def popen_impl(command: list[str]):
+def popen_impl(command: list[str], env=None):
     if debug_popen_impl:
         print('Execute command: "%s"...' % ' '.join(command), end=' ')
-    s = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    s = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env)
     out, err = s.communicate()
     def write_logs(out, err):
         out = out.decode("utf-8")
@@ -24,7 +25,7 @@ def popen_impl(command: list[str]):
         with open(stderr_log, "w") as f:
             f.write(err)
         print(f"Output log files: {stdout_log}, {stderr_log}")
-        
+
     if s.returncode != 0:
         if debug_popen_impl:
             print('failed')
@@ -69,7 +70,7 @@ class CompilerClang:
         except RuntimeError as e:
             print("Failed to execute clang, something went wrong")
             raise e
-    
+
     @staticmethod
     def get_version():
         clangversionRegex = r"(.*?clang version \d+(\.\d+)*).*"
@@ -78,63 +79,99 @@ class CompilerClang:
         _, tcversion = s.communicate()
         tcversion = tcversion.decode('utf-8')
         return match_and_get(clangversionRegex, tcversion)
-    
+
+def get_cpu_count():
+    """Get optimal thread count for building"""
+    try:
+        return max(2, multiprocessing.cpu_count())
+    except:
+        return 4
+
 def main():
-    parser = argparse.ArgumentParser(description="Build Grass Kernel with specified arguments")
-    
+    parser = argparse.ArgumentParser(description="Build Raiden Kernel with specified arguments")
+
     parser.add_argument('--allow-dirty', action='store_true', help="Allow dirty build")
     parser.add_argument('--thin', action='store_true', help="Use ThinLTO for build")
+    parser.add_argument('-j', '--jobs', type=int, default=0,
+                        help="Number of parallel jobs (default: auto-detect)")
+    parser.add_argument('--no-lto', action='store_true', help="Disable LTO for faster builds")
+    parser.add_argument('--debug', action='store_true', help="Enable debug logging")
 
     # Parse the arguments
     args = parser.parse_args()
-    
+
+    global debug_popen_impl
+    debug_popen_impl = args.debug
+
+    # Determine parallelism
+    jobs = args.jobs if args.jobs > 0 else get_cpu_count()
+
     # Check files
     if not check_file("AnyKernel3/anykernel.sh"):
         popen_impl(['git', 'submodule', 'update', '--init'])
     if not check_file("toolchain"):
         print(f"Please make toolchain available at {os.getcwd()}")
         return
-    
+
     CompilerClang.test_executable()
-    
-    # Print info
+
+    # Print build info
     print_dictinfo({
-        'TARGET_KERNEL': 'Grass',
-        'TARGET_USES_LLVM': True,
+        'TARGET_KERNEL': 'Raiden',
+        'TARGET_DEVICE': 'Samsung Galaxy A90 5G (SM-A908N/R3Q)',
+        'TARGET_SOC': 'Snapdragon 855 (SM8150)',
+        'TARGET_USES_LLVM': 'True',
+        'BUILD_THREADS': str(jobs),
         'TOOLCHAIN': CompilerClang.get_version(),
+        'BUILD_TYPE': 'ThinLTO' if args.thin else ('No-LTO' if args.no_lto else 'Full LTO'),
     })
-    
+
     # Add toolchain in PATH environment variable
     tcPath = os.path.join(os.getcwd(), 'toolchain', 'bin')
     if tcPath not in os.environ['PATH'].split(os.pathsep):
         os.environ["PATH"] = tcPath + ':' + os.environ["PATH"]
-    
+
+    # Set build environment
+    build_env = os.environ.copy()
+    build_env["ARCH"] = "arm64"
+    build_env["CROSS_COMPILE"] = "aarch64-linux-gnu-"
+    build_env["LLVM"] = "1"
+
+    # Additional KCFLAGS for optimization
+    if not args.no_lto:
+        build_env["KCFLAGS"] = "-O2 -fno-semantic-interposition"
+
     outDir = 'out'
     if os.path.exists(outDir) and not args.allow_dirty:
         print('Make clean...')
         shutil.rmtree(outDir)
-    
+
     make_defconfig = []
     make_common = ['make', 'O=out', 'LLVM=1', 'ARCH=arm64',
-                   'CROSS_COMPILE=aarch64-linux-gnu-', f'-j{os.cpu_count()}']
-    make_defconfig += make_common 
+                   'CROSS_COMPILE=aarch64-linux-gnu-', f'-j{jobs}']
+    
+    if args.no_lto:
+        make_common.append('LTO=n')
+        make_common.append('LLVM_IAS=0')
+    
+    make_defconfig += make_common
     make_defconfig += ['r3q_defconfig']
     if args.thin:
         make_defconfig += ['thinlto.config']
-    
+
     t = datetime.now()
-    print('Make defconfig...')
-    popen_impl(make_defconfig)
-    print('Make kernel...')
-    popen_impl(make_common)
-    print('Done')
+    print(f'\n[1/2] Building defconfig...')
+    popen_impl(make_defconfig, env=build_env)
+    print(f'\n[2/2] Building kernel (using {jobs} threads)...')
+    popen_impl(make_common, env=build_env)
+    print('\nBuild completed successfully!')
     t = datetime.now() - t
-    
+
     with open(os.path.join(outDir, 'include', 'generated', 'utsrelease.h')) as f:
         kver = match_and_get(r'"([^"]+)"', f.read())
-    
+
     shutil.copyfile('out/arch/arm64/boot/Image', 'AnyKernel3/Image')
-    zipname = 'GrassKernel_r3q_{}.zip'.format(datetime.today().strftime('%Y-%m-%d'))
+    zipname = 'RaidenKernel_r3q_{}.zip'.format(datetime.today().strftime('%Y-%m-%d'))
     os.chdir('AnyKernel3/')
     zip_files(zipname, [
         'Image', 
@@ -151,11 +188,15 @@ def main():
         pass
     shutil.move(zipname, newZipName)
     os.chdir('..')
+    
+    minutes = int(t.total_seconds() // 60)
+    seconds = int(t.total_seconds() % 60)
     print_dictinfo({
         'OUT_ZIPNAME': zipname,
         'KERNEL_VERSION': kver,
-        'ESCLAPED_TIME': str(t.total_seconds()) + ' seconds'
+        'BUILD_TIME': f'{minutes}m {seconds}s',
     })
-    
+    print(f"\nKernel package ready: {newZipName}")
+
 if __name__ == '__main__':
     main()

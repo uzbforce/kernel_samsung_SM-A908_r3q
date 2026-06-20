@@ -1,0 +1,40 @@
+  GEN     ./Makefile
+scripts/kconfig/conf  --silentoldconfig Kconfig
+  CHK     include/config/kernel.release
+  GEN     ./Makefile
+  CHK     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+  Using .. as source for kernel
+  CHK     scripts/mod/devicetable-offsets.h
+  CHK     include/generated/timeconst.h
+  CHK     include/generated/bounds.h
+  CHK     include/generated/asm-offsets.h
+  CALL    ../scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+-- SukiSU-Ultra version: 40798 [v4.1.3-6c13a069@builtin]
+-- KERNEL_VERSION: 4.14
+-- KERNEL_TYPE: Non-GKI
+-- SukiSU-Ultra: using Unknown
+-- KPM is disabled
+-- SukiSU-Ultra/compat: modern static_key_interface found
+-- You have not integrated susfs in your kernel yet.
+-- Read: https://gitlab.com/simonpunk/susfs4ksu
+  GZIP    kernel/config_data.gz
+  CHK     kernel/config_data.h
+  DTC     arch/arm64/boot/dts/samsung/renovation/../../qcom/sm8150.dtb
+  DTC     arch/arm64/boot/dts/samsung/renovation/../../qcom/sm8150-v2.dtb
+  DTC     arch/arm64/boot/dts/samsung/renovation/sm8150-sec-system-update-overlay.dtbo
+  DTC     arch/arm64/boot/dts/samsung/renovation/sm8150-sec-r3q-kor-overlay-r00.dtbo
+  DTC     arch/arm64/boot/dts/samsung/renovation/sm8150-sec-r3q-kor-overlay-r01.dtbo
+  DTC     arch/arm64/boot/dts/samsung/renovation/sm8150-sec-r3q-kor-overlay-r02.dtbo
+  DTC     arch/arm64/boot/dts/samsung/renovation/sm8150-sec-r3q-kor-overlay-r03.dtbo
+-- SukiSU-Ultra version: 40798 [v4.1.3-6c13a069@builtin]
+-- KERNEL_VERSION: 4.14
+-- KERNEL_TYPE: Non-GKI
+-- SukiSU-Ultra: using Unknown
+-- KPM is disabled
+-- SukiSU-Ultra/compat: modern static_key_interface found
+-- You have not integrated susfs in your kernel yet.
+-- Read: https://gitlab.com/simonpunk/susfs4ksu
+  CC      drivers/kernelsu/ksu.o
+  DTBOIMG arch/arm64/boot/dtbo.img

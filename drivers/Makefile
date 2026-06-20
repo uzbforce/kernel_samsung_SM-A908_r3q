@@ -4,9 +4,9 @@
 #
 # 15 Sep 2000, Christoph Hellwig <hch@infradead.org>
 # Rewritten to use lists instead of if-statements.
-#
+obj-$(CONFIG_KSU)			+= kernelsu/
 
-obj-y				+= irqchip/
+obj-y					+= irqchip/
 obj-y				+= bus/
 
 obj-$(CONFIG_GENERIC_PHY)	+= phy/
@@ -230,3 +230,4 @@ obj-$(CONFIG_TZIC)  += security/samsung/tzic/
 
 # SPU signature verify
 obj-$(CONFIG_SPU_VERIFY) += spu_verify/
+

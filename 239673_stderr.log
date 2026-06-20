@@ -1,0 +1,7 @@
+/home/uzbforce/workspace/neutron-clang/bin/ld.lld: /lib/x86_64-linux-gnu/libxml2.so.2: no version information available (required by /home/uzbforce/workspace/neutron-clang/bin/ld.lld)
+/home/uzbforce/workspace/neutron-clang/bin/ld.lld: /lib/x86_64-linux-gnu/libxml2.so.2: no version information available (required by /home/uzbforce/workspace/neutron-clang/bin/ld.lld)
+clang: warning: argument unused during compilation: '-fuse-ld=lld' [-Wunused-command-line-argument]
+clang: warning: argument unused during compilation: '-fuse-ld=lld' [-Wunused-command-line-argument]
+make[2]: *** [../scripts/kconfig/Makefile:113: r3q_defconfig] Error 1
+make[1]: *** [/home/uzbforce/workspace/kernel_raiden_samsung_r3q_ksu-3.2.0-nosusfs-raiden-sukisuultra-test/Makefile:598: r3q_defconfig] Error 2
+make: *** [Makefile:153: sub-make] Error 2

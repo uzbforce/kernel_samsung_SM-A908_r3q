@@ -1002,6 +1002,62 @@ static void adreno_of_get_initial_pwrlevel(struct adreno_device *adreno_dev,
 	pwr->default_pwrlevel = init_level;
 }
 
+/*
+ * Raiden Kernel - GPU Overclock for Adreno 640 (SM8150)
+ * Adds overclocked frequencies: 800, 700, 650 MHz on top of stock 585 MHz
+ * This overrides Samsung DTBO limitations by patching the driver directly.
+ */
+static void adreno_gpu_overclock(struct adreno_device *adreno_dev)
+{
+	struct kgsl_device *device = KGSL_DEVICE(adreno_dev);
+	struct kgsl_pwrctrl *pwr = &device->pwrctrl;
+	int i, oc_levels = 3;
+	int orig_levels = pwr->num_pwrlevels;
+
+	/* Only apply overclock for Adreno 640 (chipid 0x06040000) */
+	if (adreno_dev->chipid != 0x06040000)
+		return;
+
+	/* Check if we have enough room in the power level array */
+	if (orig_levels + oc_levels > KGSL_MAX_PWRLEVELS)
+		return;
+
+	/* Shift existing levels down to make room for OC levels */
+	for (i = orig_levels - 1; i >= 0; i--) {
+		pwr->pwrlevels[i + oc_levels] = pwr->pwrlevels[i];
+	}
+
+	/* Update reg/index for shifted levels */
+	for (i = oc_levels; i < orig_levels + oc_levels; i++) {
+		/* indices already shifted by the copy above */
+	}
+
+	/* Insert overclocked levels at the top (index 0 = highest) */
+	/* Level 0: 800 MHz (TURBO) */
+	pwr->pwrlevels[0].gpu_freq = 800000000;
+	pwr->pwrlevels[0].bus_freq = 12;
+	pwr->pwrlevels[0].bus_min = 11;
+	pwr->pwrlevels[0].bus_max = 12;
+
+	/* Level 1: 700 MHz (TURBO) */
+	pwr->pwrlevels[1].gpu_freq = 700000000;
+	pwr->pwrlevels[1].bus_freq = 12;
+	pwr->pwrlevels[1].bus_min = 10;
+	pwr->pwrlevels[1].bus_max = 12;
+
+	/* Level 2: 650 MHz (TURBO) */
+	pwr->pwrlevels[2].gpu_freq = 650000000;
+	pwr->pwrlevels[2].bus_freq = 12;
+	pwr->pwrlevels[2].bus_min = 10;
+	pwr->pwrlevels[2].bus_max = 12;
+
+	pwr->num_pwrlevels = orig_levels + oc_levels;
+
+	KGSL_DRV_INFO(device,
+		"Raiden GPU OC: Added 800/700/650 MHz. Total levels: %d\n",
+		pwr->num_pwrlevels - 1);
+}
+
 static int adreno_of_get_legacy_pwrlevels(struct adreno_device *adreno_dev,
 		struct device_node *parent)
 {
@@ -1016,8 +1072,10 @@ static int adreno_of_get_legacy_pwrlevels(struct adreno_device *adreno_dev,
 	}
 
 	ret = adreno_of_parse_pwrlevels(adreno_dev, node);
-	if (ret == 0)
+	if (ret == 0) {
 		adreno_of_get_initial_pwrlevel(adreno_dev, parent);
+		adreno_gpu_overclock(adreno_dev);
+	}
 	return ret;
 }
 
@@ -1040,9 +1098,11 @@ static int adreno_of_get_pwrlevels(struct adreno_device *adreno_dev,
 			int ret;
 
 			ret = adreno_of_parse_pwrlevels(adreno_dev, child);
-			if (ret == 0)
+			if (ret == 0) {
 				adreno_of_get_initial_pwrlevel(adreno_dev,
 								child);
+				adreno_gpu_overclock(adreno_dev);
+			}
 			return ret;
 		}
 	}
