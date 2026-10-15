@@ -10,7 +10,6 @@ Raiden Kernel is a performance-focused custom kernel based on Samsung's stock 4.
 
 **Features:**
 - Kernel 4.14.336
-- KernelSU Next 3.2.0 (legacy, manual hooks)
 - AnyKernel3 flashable zip
 - Built with LLVM/Clang + LTO
 
