@@ -50,13 +50,6 @@ Raiden Kernel is a performance-focused custom kernel based on Samsung's stock 4.
 - Full Netfilter/iptables support
 
 ### Security
-- KernelSU Next 3.2.0 with manual hooks
-- SusFS (Suspicious Filesystem) support:
-  - Path hiding
-  - Mount hiding
-  - File open redirection
-  - Uname spoofing
-  - Symbol hiding
 - Hardened usercopy
 - Shadow Call Stack
 - FORTIFY_SOURCE
