@@ -1,0 +1,60 @@
+menu "KernelSU"
+
+config KSU
+	bool "KernelSU function support"
+	default y
+	help
+	  Enable kernel-level root privileges on Android System.
+	  To compile as a module, choose M here: the
+	  module will be called kernelsu.
+
+config KSU_FEATURE_ADBROOT
+	bool "KernelSU ADB Root feature"
+	depends on KSU
+	default y
+	help
+	  Build KernelSU's adb root feature.
+
+config KSU_DEBUG
+	bool "KernelSU debug mode"
+	depends on KSU
+	default n
+	help
+	  Enable KernelSU debug mode.
+
+config KSU_DISABLE_POLICY
+    bool "Disable KernelSU policy"
+    depends on KSU
+    default n
+    help
+      Disable KernelSU policy feature.
+
+config KSU_MANUAL_HOOK
+    bool "KernelSU manual hook mode"
+    depends on KSU
+    default n
+    help
+      Enable manual hook mode for KernelSU.
+      In this mode, KernelSU will manually hook the syscall dispatcher
+      instead of using the default hook method.
+      This requires kernel/reboot.c to contain ksu_handle_sys_reboot().
+
+config KSU_X86_PATCH_SYSCALL_DISPATCHER
+    bool "Patch syscall dispatcher on x86"
+    depends on KSU && X86
+    default n
+    help
+      Patch the syscall dispatcher directly on x86 platforms.
+
+config KPM
+    bool "Enable SukiSU KPM"
+    depends on KSU && 64BIT
+    default n
+    help
+      Enabling this option will activate the KPM feature of SukiSU.
+      This option is suitable for scenarios where you need to force KPM to be enabled.
+      but it may affect system stability.
+    select KALLSYMS
+    select KALLSYMS_ALL
+
+endmenu
