@@ -60,14 +60,14 @@ Raiden Kernel is a performance-focused custom kernel based on Samsung's stock 4.
 
 | Device | Codename | Model |
 |--------|----------|-------|
-| Samsung Galaxy A90 5G | R3Q | SM-A908N |
+| Samsung Galaxy A90 5G | R3Q | SM-A908 |
 
 ---
 
 ## Building
 
 ### Prerequisites
-- Clang/LLVM toolchain (place in `toolchain/` directory)
+- Clang/LLVM toolchain (place anywhere you want, and then edit the path inside the build_kernel.py
 - Python 3.x
 - aarch64-linux-gnu cross-compiler
 
@@ -101,27 +101,22 @@ The build produces a flashable AnyKernel3 zip: `RaidenKernel_r3q_YYYY-MM-DD.zip`
 2. Flash `RaidenKernel_r3q_YYYY-MM-DD.zip`
 3. Reboot to system
 
-**Note:** This kernel includes KernelSU Next. Root access will be available after installing the KernelSU manager app.
+**Note:** This kernel includes kernel-based root solutions. Root access will be available after installing the manager app.
 
 ---
 
 ## KernelSU
 
-This kernel includes **KernelSU Next v3.2.0-legacy** with manual hook integration.
+This repo includes **KernelSU Next legacy and SukiSU-Ultra @builtin** kernels with manual hook integrations.
 
 - No SusFS (as per build configuration)
-- Manual hooks integrated into kernel source
-- Compatible with KernelSU Next manager app
 
 ---
 
 ## Credits
 
 - **uzbforce** - Kernel modifications and optimizations
-- **Samsung** - Stock kernel source
-- **Qualcomm** - SM8150 platform support
-- **KernelSU Next team** - Root solution
-- **AnyKernel3 (osm0sis)** - Flashable zip template
+- **Royna** - for providing the 4.14.334 kernel as a base
 
 ---
 
@@ -133,4 +128,4 @@ This kernel is provided as-is. Flashing custom kernels may void your warranty an
 
 ## License
 
-This kernel is based on Samsung's Linux kernel source and is licensed under GPL-2.0.
+Licensed under GPL-3.0.
